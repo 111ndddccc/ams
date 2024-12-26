@@ -1,0 +1,51 @@
+name: "CodeQL Analysis"
+
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+  workflow_dispatch: # Allows manual triggering
+
+permissions:
+  contents: read  # Allows read access to code
+  security-events: write  # Allows writing code scanning results
+
+jobs:
+  # Define a job named 'codeql-analysis'
+  codeql-analysis:
+    runs-on: ubuntu-latest  # Runs the job on an Ubuntu machine
+    name: CodeQL Analysis
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4  # Checks out your repository
+
+    - name: Set up CodeQL
+      uses: github/codeql-action/setup@v2  # Set up CodeQL to run the analysis
+
+    - name: Initialize CodeQL database
+      uses: github/codeql-action/analyze@v2
+      with:
+        language: python  # Specify the language for analysis (e.g., python, java, javascript)
+
+    - name: Run CodeQL analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        language: python  # Specify the language for analysis (same as previous step)
+
+    - name: Upload CodeQL results
+      uses: github/codeql-action/upload-results@v2  # Upload the scan results to GitHub
+      if: always()  # Always upload results, even if previous steps fail
+
+    - name: Upload SARIF results for security alerts
+      if: success()
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: ./codeql-results/python.sarif  # Path to the SARIF result file
+
+    - name: CodeQL Action Complete
+      run: echo "CodeQL scan completed."
